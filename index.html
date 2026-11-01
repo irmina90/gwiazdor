@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Losowanie Mikołajek</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow column, three steps (osoby → losowanie → odkrywanie), card only for the reveal "envelope" */
+:root{
+  --bg:#eef2f4; --surface:#ffffff; --ink:#18263a; --muted:#5b6b7f; --line:#d5dde4;
+  --accent:#b3263c; --accent-ink:#ffffff; --gold:#b8862b; --pine:#1f5b4a;
+  --display:"Young Serif", Georgia, serif; --body:"Figtree", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101a24; --surface:#18242f; --ink:#e7edf2; --muted:#93a3b3; --line:#2a3946;
+  --accent:#e0566b; --accent-ink:#1a0d10; --gold:#e0b45c; --pine:#5fbf9c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101a24; --surface:#18242f; --ink:#e7edf2; --muted:#93a3b3; --line:#2a3946;
+  --accent:#e0566b; --accent-ink:#1a0d10; --gold:#e0b45c; --pine:#5fbf9c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+.wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font-family:var(--display);font-weight:400;font-size:2.1rem;line-height:1.1;margin:0;text-wrap:balance}
+h1 span{color:var(--accent)}
+h2{font-family:var(--display);font-weight:400;font-size:1.3rem;margin:0}
+.lead{color:var(--muted);margin:6px 0 0}
+.step{display:flex;flex-direction:column;gap:12px}
+.label{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.row{display:flex;gap:8px}
+input[type=text],input[type=number],select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;min-width:0;flex:1}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font:inherit;font-weight:600;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 14px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:6px 8px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:0}
+.chip{display:flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 4px 4px 12px}
+.chip button{border:0;background:transparent;color:var(--muted);padding:2px 8px;font-size:1.1rem;line-height:1}
+.note{font-size:.88rem;color:var(--muted);margin:0}
+.excl{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.excl li{display:flex;justify-content:space-between;align-items:center;font-size:.95rem;border-bottom:1px dashed var(--line);padding-bottom:6px}
+.err{color:var(--accent);font-weight:600;margin:0}
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.people button{text-align:left;padding:14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.people button.done{color:var(--muted);text-decoration:line-through;background:transparent}
+.people .tick{color:var(--pine);text-decoration:none}
+.envelope{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 22px;text-align:center;
+  display:flex;flex-direction:column;gap:14px;align-items:center;position:relative;overflow:hidden}
+.envelope::before{content:"";position:absolute;inset:0 0 auto;height:6px;
+  background:repeating-linear-gradient(90deg,var(--accent) 0 14px,var(--surface) 14px 22px,var(--pine) 22px 36px,var(--surface) 36px 44px)}
+.envelope .who{font-family:var(--display);font-size:2.4rem;line-height:1.1;color:var(--accent);word-break:break-word}
+.envelope .small{color:var(--muted);margin:0}
+.meta{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;font-size:.9rem;color:var(--muted)}
+.meta b{color:var(--gold);font-variant-numeric:tabular-nums}
+.plist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.plist li{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 6px 6px 14px}
+.plist .pname{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:500}
+.plist .where{padding:5px 10px;font-size:.82rem;border-radius:999px;min-width:96px}
+.plist .where.remote{background:var(--pine);border-color:var(--pine);color:var(--surface)}
+.plist .del{border:0;background:transparent;color:var(--muted);padding:2px 8px;font-size:1.2rem;line-height:1}
+details summary{cursor:pointer}
+.linkrow{flex-wrap:wrap;gap:8px}
+.linkrow input{flex-basis:100%;font-size:.8rem}
+.progress{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+@media (prefers-reduced-motion:no-preference){.envelope .who{animation:pop .35s ease-out}@keyframes pop{from{transform:scale(.85);opacity:.2}to{transform:none;opacity:1}}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Losowanie <span>Mikołajek</span></h1>
+    <p class="lead">Zamiast karteczek w czapce. Wpisz osoby, wylosuj, a potem podawajcie sobie telefon. Każdy zobaczy tylko swoją osobę.</p>
+  </header>
+
+  <!-- KROK 1 -->
+  <section id="setup" class="step">
+    <div class="step">
+      <span class="label">Kto bierze udział</span>
+      <form id="addForm" class="row">
+        <input id="nameInput" type="text" placeholder="Imię, np. Ania" autocomplete="off" maxlength="30">
+        <button class="primary" type="submit">Dodaj</button>
+      </form>
+      <ul id="people-list" class="plist"></ul>
+      <p class="note">Kliknij <b>Na miejscu</b> lub <b>Zdalnie</b> przy osobie, żeby przełączyć. Na miejscu sprawdzą wynik na tym telefonie, zdalni dostaną własny link.</p>
+      <p class="note" id="exampleNote">Przykładowe imiona. Usuń je krzyżykiem i wpisz swoich.</p>
+    </div>
+
+    <div class="step">
+      <span class="label">Kto nie może wylosować kogo (opcjonalnie)</span>
+      <p class="note">Np. małżeństwa, żeby nie kupowali sobie nawzajem. Działa w obie strony.</p>
+      <div class="row">
+        <select id="exA" aria-label="Pierwsza osoba"></select>
+        <select id="exB" aria-label="Druga osoba"></select>
+        <button id="addEx" type="button">+</button>
+      </div>
+      <ul id="excl" class="excl"></ul>
+    </div>
+
+    <div class="step">
+      <span class="label">Budżet na prezent (opcjonalnie)</span>
+      <div class="row"><input id="budget" type="number" min="0" step="10" placeholder="np. 100"><span style="align-self:center;color:var(--muted)">zł</span></div>
+    </div>
+
+    <p id="error" class="err" hidden></p>
+    <button id="drawBtn" class="primary" type="button" style="padding:14px">Losuj</button>
+  </section>
+
+  <!-- KROK 2: lista do odkrywania -->
+  <section id="pick" class="step" hidden>
+    <h2>Wylosowane!</h2>
+
+    <div id="localBlock" class="step">
+      <span class="label">Na miejscu: kto teraz patrzy?</span>
+      <p class="note">Kliknij swoje imię. Po zobaczeniu schowaj wynik i podaj telefon dalej.</p>
+      <div id="people" class="people"></div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <div id="remoteBlock" class="step">
+      <span class="label">Zdalnie: wyślij każdemu jego link</span>
+      <p class="note">Wynik jest zakodowany w linku, więc patrząc na niego nic nie widać. Nie otwieraj cudzych linków.</p>
+      <ul id="linkList" class="excl"></ul>
+      <details>
+        <summary class="note">Adres strony w linkach</summary>
+        <div class="step" style="margin-top:8px">
+          <input id="baseUrl" type="text" autocomplete="off" aria-label="Adres strony">
+          <p class="note">Linki prowadzą pod ten adres. Zmień go tylko wtedy, gdy strona jest pod innym adresem niż ten.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="actions">
+      <button id="restartBtn" class="ghost" type="button">Zacznij od nowa</button>
+    </div>
+    <div id="confirmRestart" class="step" hidden>
+      <p class="note">Wyniki zostaną skasowane, a wysłane linki przestaną pasować. Trzeba będzie losować jeszcze raz. Na pewno?</p>
+      <div class="actions"><button id="yesRestart" class="primary" type="button">Tak, kasuj</button><button id="noRestart" type="button">Anuluj</button></div>
+    </div>
+  </section>
+
+  <!-- KROK 3: koperta -->
+  <section id="reveal" class="step" hidden>
+    <div class="envelope" id="envGate">
+      <p class="small">Telefon trzyma</p>
+      <div class="who" id="gateName" style="color:var(--ink)"></div>
+      <p class="small">Upewnij się, że nikt nie patrzy.</p>
+      <div class="actions" style="justify-content:center">
+        <button id="showBtn" class="primary" type="button">To ja, pokaż</button>
+        <button id="backBtn" type="button">To nie ja</button>
+      </div>
+    </div>
+    <div class="envelope" id="envOpen" hidden>
+      <p class="small"><span id="openName"></span>, robisz prezent dla</p>
+      <div class="who" id="target"></div>
+      <div class="meta" id="meta"></div>
+      <button id="hideBtn" class="primary" type="button">Zapamiętane, schowaj</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const KEY = "mikolajki-v1";
+  let state = { names:["Ania","Bartek","Kasia","Marek","Ola"], excl:[], budget:"", result:null, seen:[], example:true };
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.names)) state = Object.assign(state, s); } catch(e){}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} };
+  const $ = id => document.getElementById(id);
+  let current = null, guest = null;
+  // Na własnym hostingu linki biorą adres strony; w Claude adres artefaktu
+  const selfHosted = /^https?:$/.test(location.protocol) && !/claude|anthropic/i.test(location.hostname);
+  const DEFAULT_URL = selfHosted ? location.origin + location.pathname : "https://claude.ai/artifact/VTA5XMeFRgK1JysfKW4VUi";
+  if (!Array.isArray(state.remote)) state.remote = [];
+  if (!state.baseUrl || (selfHosted && /claude\.ai/.test(state.baseUrl))) state.baseUrl = DEFAULT_URL;
+
+  function show(id){ ["setup","pick","reveal"].forEach(s => $(s).hidden = s !== id); }
+
+  // Kodowanie wyniku w linku (#m-klucz-dane-budżet), tylko litery/cyfry/myślniki
+  const hex = a => Array.from(a, b => b.toString(16).padStart(2,"0")).join("");
+  const unhex = s => new Uint8Array((s.match(/../g)||[]).map(h => parseInt(h,16)));
+  const mix = (bytes,key) => bytes.map((b,i) => b ^ key[i%4] ^ ((i*37+11)&255));
+  function encode(giver,target){
+    const key = crypto.getRandomValues(new Uint8Array(4));
+    const data = mix(new TextEncoder().encode(giver+"\n"+target), key);
+    const b = parseInt(state.budget,10);
+    return "m-"+hex(key)+"-"+hex(data)+(b>0 ? "-"+b : "");
+  }
+  function decode(h){
+    const p = h.replace(/^#/,"").split("-");
+    if (p[0] !== "m" || !/^[0-9a-f]{8}$/.test(p[1]||"") || !/^([0-9a-f]{2})+$/.test(p[2]||"")) return null;
+    try {
+      const txt = new TextDecoder("utf-8",{fatal:true}).decode(mix(unhex(p[2]), unhex(p[1])));
+      const [giver,target] = txt.split("\n");
+      if (!giver || !target) return null;
+      return { giver, target, budget: /^\d+$/.test(p[3]||"") ? p[3] : "" };
+    } catch(e){ return null; }
+  }
+
+  function renderLinks(){
+    $("baseUrl").value = state.baseUrl;
+    const ul = $("linkList"); ul.innerHTML = "";
+    Object.keys(state.codes||{}).forEach(n => {
+      const url = state.baseUrl.split("#")[0] + "#" + state.codes[n];
+      const li = document.createElement("li"); li.className = "linkrow";
+      li.innerHTML = `<span>${esc(n)}</span>`;
+      const b = document.createElement("button"); b.type="button"; b.textContent="Kopiuj link";
+      const inp = document.createElement("input"); inp.type="text"; inp.readOnly=true; inp.value=url; inp.hidden=true;
+      inp.setAttribute("aria-label","Link dla "+n);
+      b.onclick = () => {
+        const fallback = () => { inp.hidden=false; inp.focus(); inp.select(); b.textContent="Zaznaczony, skopiuj ręcznie"; };
+        try {
+          navigator.clipboard.writeText(url).then(() => { b.textContent="Skopiowano ✓"; setTimeout(()=>b.textContent="Kopiuj link",2000); }, fallback);
+        } catch(e){ fallback(); }
+      };
+      li.appendChild(b); li.appendChild(inp); ul.appendChild(li);
+    });
+  }
+  $("baseUrl").oninput = e => { state.baseUrl = e.target.value.trim() || DEFAULT_URL; save(); renderLinks(); $("baseUrl").focus(); };
+
+  function renderSetup(){
+    const list = $("people-list"); list.innerHTML = "";
+    state.names.forEach((n,i) => {
+      const li = document.createElement("li");
+      const isRemote = state.remote.includes(n);
+      li.innerHTML = `<span class="pname">${esc(n)}</span>`;
+      const w = document.createElement("button"); w.type="button";
+      w.className = "where" + (isRemote ? " remote" : "");
+      w.textContent = isRemote ? "Zdalnie" : "Na miejscu";
+      w.setAttribute("aria-label", `${n}: ${w.textContent}. Kliknij, żeby zmienić`);
+      w.onclick = () => { state.remote = isRemote ? state.remote.filter(x=>x!==n) : state.remote.concat(n); save(); renderSetup(); };
+      const d = document.createElement("button"); d.type="button"; d.className="del"; d.textContent="×"; d.setAttribute("aria-label","Usuń "+n);
+      d.onclick = () => { state.names.splice(i,1); state.remote = state.remote.filter(x=>x!==n); state.excl = state.excl.filter(p => !p.includes(n)); state.example=false; save(); renderSetup(); };
+      li.append(w, d); list.appendChild(li);
+    });
+    $("exampleNote").hidden = !state.example;
+    ["exA","exB"].forEach(id => { const sel=$(id), v=sel.value; sel.innerHTML = state.names.map(n=>`<option>${esc(n)}</option>`).join(""); if(state.names.includes(v)) sel.value=v; });
+    if ($("exA").value === $("exB").value && state.names.length>1) $("exB").selectedIndex = 1;
+    const ul = $("excl"); ul.innerHTML = "";
+    state.excl.forEach((p,i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span>${esc(p[0])} ↔ ${esc(p[1])}</span>`;
+      const b = document.createElement("button"); b.type="button"; b.className="ghost"; b.textContent="Usuń";
+      b.onclick = () => { state.excl.splice(i,1); save(); renderSetup(); };
+      li.appendChild(b); ul.appendChild(li);
+    });
+    $("budget").value = state.budget;
+    $("drawBtn").disabled = state.names.length < 3;
+    $("drawBtn").textContent = state.names.length < 3 ? "Dodaj co najmniej 3 osoby" : `Losuj (${state.names.length} osób)`;
+  }
+  const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+  $("addForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const n = $("nameInput").value.trim();
+    if (!n) return;
+    if (state.example) { state.names = []; state.remote = []; state.example = false; }
+    if (state.names.some(x => x.toLowerCase() === n.toLowerCase())) { err("To imię już jest na liście. Dodaj np. inicjał nazwiska."); return; }
+    state.names.push(n); $("nameInput").value = ""; err(""); save(); renderSetup(); $("nameInput").focus();
+  });
+  $("addEx").onclick = () => {
+    const a=$("exA").value, b=$("exB").value;
+    if (!a || !b || a===b) { err("Wybierz dwie różne osoby."); return; }
+    if (state.excl.some(p => p.includes(a) && p.includes(b))) return;
+    state.excl.push([a,b]); err(""); save(); renderSetup();
+  };
+  $("budget").oninput = e => { state.budget = e.target.value; save(); };
+  function err(m){ $("error").textContent = m; $("error").hidden = !m; }
+
+  function draw(names, excl){
+    const blocked = (a,b) => a===b || excl.some(p => p.includes(a) && p.includes(b));
+    for (let t=0; t<5000; t++){
+      const arr = names.slice();
+      for (let i=arr.length-1;i>0;i--){ const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i+1); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+      if (names.every((n,i) => !blocked(n, arr[i]))) return Object.fromEntries(names.map((n,i)=>[n,arr[i]]));
+    }
+    return null;
+  }
+  $("drawBtn").onclick = () => {
+    const r = draw(state.names, state.excl);
+    if (!r) { err("Przy tych wykluczeniach nie da się nikogo dobrać. Usuń któreś z nich."); return; }
+    err(""); state.seen = []; state.result = {}; state.codes = {};
+    // zdalnym zapisujemy tylko zakodowany link, żeby organizator nie miał ich wyników jawnie
+    Object.entries(r).forEach(([g,t]) => { if (state.remote.includes(g)) state.codes[g] = encode(g,t); else state.result[g] = t; });
+    state.drawn = true; save(); renderPick(); show("pick");
+  };
+
+  function renderPick(){
+    const box = $("people"); box.innerHTML = "";
+    Object.keys(state.result).forEach(n => {
+      const b = document.createElement("button"); b.type="button";
+      const done = state.seen.includes(n);
+      b.className = done ? "done" : "";
+      b.innerHTML = `<span>${esc(n)}</span>${done?'<span class="tick">✓</span>':''}`;
+      b.onclick = () => openGate(n);
+      box.appendChild(b);
+    });
+    const total = Object.keys(state.result).length, s = state.seen.length;
+    $("progress").textContent = s === total ? "Wszyscy na miejscu już wiedzą." : `Sprawdziło: ${s} z ${total}`;
+    $("localBlock").hidden = total === 0;
+    $("remoteBlock").hidden = Object.keys(state.codes||{}).length === 0;
+    renderLinks();
+    $("confirmRestart").hidden = true;
+  }
+  function openGate(n){
+    current = n; $("gateName").textContent = n;
+    $("envGate").hidden = false; $("envOpen").hidden = true; show("reveal");
+  }
+  $("showBtn").onclick = () => {
+    $("openName").textContent = current;
+    const target = guest ? guest.target : state.result[current];
+    const budget = guest ? guest.budget : state.budget;
+    $("target").textContent = target;
+    $("meta").innerHTML = budget ? `<span>Budżet: <b>${esc(String(budget))} zł</b></span>` : "";
+    $("envGate").hidden = true; $("envOpen").hidden = false;
+  };
+  $("backBtn").onclick = () => show("pick");
+  $("hideBtn").onclick = () => {
+    if (guest) { $("target").textContent = ""; $("envOpen").hidden = true; $("envGate").hidden = false; return; }
+    if (!state.seen.includes(current)) state.seen.push(current);
+    $("target").textContent = ""; save(); renderPick(); show("pick");
+  };
+  $("restartBtn").onclick = () => $("confirmRestart").hidden = false;
+  $("noRestart").onclick = () => $("confirmRestart").hidden = true;
+  $("yesRestart").onclick = () => { state.result = null; state.codes = null; state.drawn = false; state.seen = []; save(); renderSetup(); show("setup"); };
+
+  function route(){
+    guest = decode(location.hash);
+    if (guest) {
+      current = guest.giver;
+      $("gateName").textContent = guest.giver;
+      $("envGate").querySelector(".small").textContent = "Link dla";
+      $("backBtn").hidden = true;
+      $("envGate").querySelector(".small:last-of-type").textContent = "To Twój osobisty link. Wynik zobaczysz tylko Ty.";
+      $("envGate").hidden = false; $("envOpen").hidden = true;
+      document.querySelector("header .lead").textContent = "Ktoś wylosował dla Ciebie osobę, której robisz prezent.";
+      show("reveal");
+      return;
+    }
+    $("backBtn").hidden = false;
+    renderSetup();
+    if (state.drawn && state.result) { renderPick(); show("pick"); }
+    else show("setup");
+  }
+  window.addEventListener("hashchange", route);
+  route();
+})();
+</script>
+
+</body>
+</html>
